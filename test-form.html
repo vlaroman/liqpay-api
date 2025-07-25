@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Conference Registration Test - Updated Column Structure</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; background: #f5f5f5; }
+        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .form-group { margin: 15px 0; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
+        input, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        button { background: #007cba; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin: 10px 5px; }
+        button:hover { background: #005a87; }
+        button.secondary { background: #6c757d; }
+        button.secondary:hover { background: #545b62; }
+        .result { margin: 20px 0; padding: 15px; border-radius: 4px; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+        .section { margin: 30px 0; padding: 20px; border: 1px solid #ddd; border-radius: 4px; }
+        .columns-info { background: #fff3cd; padding: 15px; border-radius: 4px; margin-bottom: 20px; }
+        .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 15px; }
+        .status-item { padding: 10px; background: #f8f9fa; border-radius: 4px; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Conference Registration Test</h1>
+        <p><strong>Updated for your Google Sheets column structure</strong></p>
+        
+        <div class="columns-info">
+            <h3>📊 Google Sheets Column Mapping:</h3>
+            <div class="status-grid">
+                <div class="status-item"><strong>Column N:</strong> Submission ID</div>
+                <div class="status-item"><strong>Column U:</strong> Payment Status</div>
+                <div class="status-item"><strong>Column V:</strong> Payment Amount</div>
+                <div class="status-item"><strong>Column W:</strong> Payment Date</div>
+                <div class="status-item"><strong>Column X:</strong> Payment Link</div>
+                <div class="status-item"><strong>Column Y:</strong> Transaction ID</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📝 1. Simulate Paperform Submission</h2>
+            <form id="registrationForm">
+                <div class="form-group">
+                    <label for="submission_id">Submission ID (will be stored in Column N):</label>
+                    <input type="text" id="submission_id" name="submission_id" value="conf_2024_001" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="name">Full Name:</label>
+                    <input type="text" id="name" name="name" value="John Doe" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" value="john@example.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="amount">Amount (UAH):</label>
+                    <input type="number" id="amount" name="amount" value="1500" required>
+                </div>
+                
+                <button type="submit">🔗 Generate Payment Link</button>
+            </form>
+            
+            <div id="result"></div>
+        </div>
+
+        <div class="section">
+            <h2>🔍 2. Check Payment Status</h2>
+            <div style="display: flex; gap: 10px; align-items: end;">
+                <div class="form-group" style="flex: 1;">
+                    <label for="statusSubmissionId">Submission ID:</label>
+                    <input type="text" id="statusSubmissionId" placeholder="Enter Submission ID" value="conf_2024_001">
+                </div>
+                <button onclick="checkStatus()">Check Status</button>
+            </div>
+            <div id="statusResult"></div>
+        </div>
+
+        <div class="section">
+            <h2>🔄 3. Regenerate Payment Link</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label for="regenSubmissionId">Submission ID:</label>
+                    <input type="text" id="regenSubmissionId" value="conf_2024_001">
+                </div>
+                <div class="form-group">
+                    <label for="regenAmount">Amount (UAH):</label>
+                    <input type="number" id="regenAmount" value="1500">
+                </div>
+                <div class="form-group">
+                    <label for="regenEmail">Email:</label>
+                    <input type="email" id="regenEmail" value="john@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="regenName">Name:</label>
+                    <input type="text" id="regenName" value="John Doe">
+                </div>
+            </div>
+            <button onclick="regeneratePayment()">🔄 Regenerate Payment Link</button>
+            <div id="regenResult"></div>
+        </div>
+
+        <div class="section">
+            <h2>📋 4. View All Pending Payments</h2>
+            <button onclick="viewPendingPayments()">📊 View Pending Payments</button>
+            <div id="pendingResult"></div>
+        </div>
+    </div>
+
+    <script>
+        // Form submission handler
+        document.getElementById('registrationForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            
+            document.getElementById('result').innerHTML = '<div class="info">🔄 Processing...</div>';
+            
+            try {
+                const response = await fetch('/webhook/paperform', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('result').innerHTML = `
+                        <div class="result success">
+                            <h3>✅ Payment Link Generated Successfully!</h3>
+                            <p><strong>Submission ID:</strong> ${data.submission_id}</p>
+                            <p><strong>Status:</strong> PENDING (written to Column U)</p>
+                            <p><strong>Amount:</strong> ${data.amount} UAH (written to Column V)</p>
+                            <p><a href="${result.payment_link}" target="_blank" style="color: #007cba; font-weight: bold;">🔗 Click here to pay with LiqPay</a></p>
+                            <details style="margin-top: 15px;">
+                                <summary style="cursor: pointer; color: #6c757d;">Show full payment URL</summary>
+                                <code style="word-break: break-all; background: #f8f9fa; padding: 10px; display: block; margin-top: 10px; border-radius: 4px;">${result.payment_link}</code>
+                            </details>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('result').innerHTML = `
+                        <div class="result error">
+                            <h3>❌ Error</h3>
+                            <p>${result.error || 'Unknown error occurred'}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('result').innerHTML = `
+                    <div class="result error">
+                        <h3>❌ Network Error</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        });
+        
+        // Check payment status
+        async function checkStatus() {
+            const submissionId = document.getElementById('statusSubmissionId').value;
+            if (!submissionId) {
+                alert('Please enter a submission ID');
+                return;
+            }
+            
+            document.getElementById('statusResult').innerHTML = '<div class="info">🔄 Checking status...</div>';
+            
+            try {
+                const response = await fetch(`/payment-status/${submissionId}`);
+                const result = await response.json();
+                
+                if (response.ok) {
+                    const statusColor = result.status === 'COMPLETED' ? 'success' : 
+                                      result.status === 'FAILED' ? 'error' : 'info';
+                    
+                    document.getElementById('statusResult').innerHTML = `
+                        <div class="result ${statusColor}">
+                            <h4>📊 Payment Status for: ${result.submission_id}</h4>
+                            <div class="status-grid">
+                                <div class="status-item"><strong>Status (Col U):</strong> ${result.status}</div>
+                                <div class="status-item"><strong>Amount (Col V):</strong> ${result.amount} UAH</div>
+                                <div class="status-item"><strong>Date (Col W):</strong> ${result.payment_date ? new Date(result.payment_date).toLocaleString() : 'N/A'}</div>
+                                <div class="status-item"><strong>Transaction (Col Y):</strong> ${result.transaction_id || 'N/A'}</div>
+                            </div>
+                            ${result.payment_link ? `<p style="margin-top: 15px;"><a href="${result.payment_link}" target="_blank">🔗 Payment Link (Col X)</a></p>` : ''}
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('statusResult').innerHTML = `
+                        <div class="result error">
+                            <h4>❌ Error</h4>
+                            <p>${result.error}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('statusResult').innerHTML = `
+                    <div class="result error">
+                        <h4>❌ Network Error</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Regenerate payment link
+        async function regeneratePayment() {
+            const submissionId = document.getElementById('regenSubmissionId').value;
+            const amount = document.getElementById('regenAmount').value;
+            const email = document.getElementById('regenEmail').value;
+            const name = document.getElementById('regenName').value;
+            
+            if (!submissionId || !amount || !email || !name) {
+                alert('Please fill all fields');
+                return;
+            }
+            
+            document.getElementById('regenResult').innerHTML = '<div class="info">🔄 Regenerating...</div>';
+            
+            try {
+                const response = await fetch(`/regenerate-payment/${submissionId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount, email, name })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('regenResult').innerHTML = `
+                        <div class="result success">
+                            <h4>✅ New Payment Link Generated!</h4>
+                            <p><a href="${result.payment_link}" target="_blank">🔗 New Payment Link</a></p>
+                            <p><small>Column X has been updated in Google Sheets</small></p>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('regenResult').innerHTML = `
+                        <div class="result error">
+                            <h4>❌ Error</h4>
+                            <p>${result.error}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('regenResult').innerHTML = `
+                    <div class="result error">
+                        <h4>❌ Network Error</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // View pending payments
+        async function viewPendingPayments() {
+            document.getElementById('pendingResult').innerHTML = '<div class="info">🔄 Loading pending payments...</div>';
+            
+            try {
+                const response = await fetch('/pending-payments');
+                const result = await response.json();
+                
+                if (response.ok) {
+                    if (result.pending_payments.length === 0) {
+                        document.getElementById('pendingResult').innerHTML = `
+                            <div class="result info">
+                                <h4>📊 No Pending Payments</h4>
+                                <p>All payments have been completed or there are no submissions yet.</p>
+                            </div>
+                        `;
+                    } else {
+                        let html = `
+                            <div class="result info">
+                                <h4>📊 Pending Payments (${result.total_pending})</h4>
+                                <div style="margin-top: 15px;">
+                        `;
+                        
+                        result.pending_payments.forEach(payment => {
+                            html += `
+                                <div style="border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 4px; background: white;">
+                                    <div class="status-grid">
+                                        <div class="status-item"><strong>Submission:</strong> ${payment.submission_id}</div>
+                                        <div class="status-item"><strong>Amount:</strong> ${payment.amount} UAH</div>
+                                        <div class="status-item"><strong>Date:</strong> ${new Date(payment.payment_date).toLocaleString()}</div>
+                                        <div class="status-item"><strong>Row:</strong> ${payment.row_number}</div>
+                                    </div>
+                                    ${payment.payment_link ? `<p style="margin-top: 10px;"><a href="${payment.payment_link}" target="_blank">🔗 Payment Link</a></p>` : ''}
+                                </div>
+                            `;
+                        });
+                        
+                        html += '</div></div>';
+                        document.getElementById('pendingResult').innerHTML = html;
+                    }
+                } else {
+                    document.getElementById('pendingResult').innerHTML = `
+                        <div class="result error">
+                            <h4>❌ Error</h4>
+                            <p>Failed to load pending payments</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('pendingResult').innerHTML = `
+                    <div class="result error">
+                        <h4>❌ Network Error</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

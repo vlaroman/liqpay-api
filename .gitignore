@@ -1,0 +1,35 @@
+# Environment variables
+.env
+
+# Logs
+logs/
+*.log
+
+# Google service account key (sensitive)
+google-service-key.json
+
+# Node modules
+node_modules/
+
+# Backup files
+*.backup*
+*.temp
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+tmp/
+temp/
