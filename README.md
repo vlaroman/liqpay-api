@@ -15,6 +15,13 @@ This service integrates Paperform conference registration with LiqPay payment pr
 
 ## Recent Updates
 
+
+### v1.4 (July 2025)
+- **Email Invoice Integration**: Automatically enables LiqPay email invoices with user's email pre-filled
+- **Enhanced Field Mapping**: Improved email extraction and validation from Paperform data
+- **Customer Info Enhancement**: Better invoice generation with customer name and phone
+- **Process Management**: Added PM2 restart instructions for easy deployment
+
 ### v1.3 (July 2025)
 - **Payment Description**: Updated from "Conference registration" to "UCS25 registration" for better branding
 - **Timezone Fix**: Fixed timestamp display to show Ukrainian local time instead of UTC
@@ -116,6 +123,34 @@ All timestamps are displayed in Ukrainian time (Europe/Kiev):
 
 See `DEPLOYMENT_CHECKLIST.md` for complete deployment instructions.
 See `LOGGING_GUIDE.md` for logging configuration and monitoring.
+
+## Payment Processor Management
+
+### Restart the Payment Processor
+After making changes to the code or configuration:
+
+```bash
+pm2 restart payment-processor
+```
+
+### Check Status
+```bash
+pm2 status
+pm2 logs payment-processor
+```
+
+### Full Process Management
+```bash
+# Start the processor
+pm2 start server.js --name payment-processor
+
+# Stop the processor
+pm2 stop payment-processor
+
+# View real-time logs
+pm2 logs payment-processor --lines 50
+```
+
 
 ## Support
 

@@ -155,6 +155,39 @@ const auth = new google.auth.GoogleAuth({
 
 const sheets = google.sheets({ version: 'v4', auth });
 
+
+// Email validation utility function
+function validateEmail(email) {
+  if (!email) return false;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email.toString().trim());
+}
+
+// Enhanced customer info extraction for LiqPay
+function extractCustomerInfo(userData) {
+  const customerInfo = {};
+  
+  // Extract and validate email
+  const rawEmail = userData.email;
+  if (rawEmail && validateEmail(rawEmail)) {
+    customerInfo.customer_email = rawEmail.toString().trim().toLowerCase();
+    customerInfo.send_email = true; // Enable email invoice
+  }
+  
+  // Extract customer name
+  if (userData.display_name) {
+    customerInfo.customer_name = userData.display_name;
+  } else if (userData.name) {
+    customerInfo.customer_name = userData.name;
+  }
+  
+  // Extract phone if available
+  if (userData.phone) {
+    customerInfo.customer_phone = userData.phone;
+  }
+  
+  return customerInfo;
+}
 // LiqPay signature generation
 function generateLiqPaySignature(data) {
     const signString = LIQPAY_PRIVATE_KEY + data + LIQPAY_PRIVATE_KEY;

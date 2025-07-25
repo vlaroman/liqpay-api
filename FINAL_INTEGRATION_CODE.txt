@@ -1,0 +1,59 @@
+// ===========================================
+// ADD THESE FUNCTIONS TO YOUR server.js FILE
+// ===========================================
+
+// Email validation utility function
+function validateEmail(email) {
+  if (!email) return false;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email.toString().trim());
+}
+
+// Enhanced customer info extraction for LiqPay email invoices
+function extractCustomerInfo(userData) {
+  const customerInfo = {};
+  
+  // Extract and validate email for invoice
+  const rawEmail = userData.email;
+  if (rawEmail && validateEmail(rawEmail)) {
+    customerInfo.customer_email = rawEmail.toString().trim().toLowerCase();
+    customerInfo.send_email = true; // THIS ENABLES EMAIL INVOICE
+    logger.info('Email invoice enabled', { email: customerInfo.customer_email });
+  } else {
+    logger.warn('Email invoice disabled - invalid email', { email: rawEmail });
+  }
+  
+  // Extract customer name for better invoice
+  if (userData.display_name) {
+    customerInfo.customer_name = userData.display_name;
+  } else if (userData.name) {
+    customerInfo.customer_name = userData.name;
+  }
+  
+  // Extract phone if available
+  if (userData.phone) {
+    customerInfo.customer_phone = userData.phone;
+  }
+  
+  return customerInfo;
+}
+
+// ===========================================
+// UPDATE YOUR LIQPAY PAYMENT DATA CREATION
+// ===========================================
+
+// Find where you create paymentData and ADD this line:
+const paymentData = {
+  version: '3',
+  action: 'pay',
+  amount: amount,
+  currency: 'UAH',
+  description: 'UCS25 registration',
+  order_id: orderId,
+  
+  // ADD THIS LINE FOR EMAIL INVOICE:
+  ...extractCustomerInfo(userData),
+  
+  result_url: `${process.env.SERVER_URL}/payment-result`,
+  server_url: `${process.env.SERVER_URL}/webhook/liqpay`,
+};
