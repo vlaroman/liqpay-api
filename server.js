@@ -387,7 +387,8 @@ app.post('/webhook/paperform', async (req, res) => {
                 submissionData.submission_id, 
                 submissionData.amount, 
                 submissionData.email, 
-                submissionData.name
+                submissionData.name,
+                submissionData
             );
             
             // Update with payment link
@@ -440,7 +441,7 @@ app.post('/webhook/paperform', async (req, res) => {
 });
 
 // Create payment link
-async function createPaymentLink(orderId, amount, email, description) {
+async function createPaymentLink(orderId, amount, email, description, userData = {}) {
     try {
         logger.info('Creating LiqPay payment link', {
             orderId,
@@ -460,7 +461,10 @@ async function createPaymentLink(orderId, amount, email, description) {
             server_url: `${BASE_URL}/webhook/liqpay`,
             result_url: `${BASE_URL}/pay/${orderId}`,
             language: 'uk',
-            customer: email,
+            customer_email: email,
+            send_email: true,
+            customer_name: userData.name || description,
+            customer_phone: userData.phone,
             sandbox: process.env.LIQPAY_SANDBOX === '1' ? '1' : '0'
         };
         
